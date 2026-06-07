@@ -1,0 +1,58 @@
+{% extends 'recipes/base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 50px;">
+    <h1 style="font-size: 3rem; font-weight: 900; text-transform: uppercase; border-bottom: 4px solid #000; padding-bottom: 10px; margin-bottom: 30px;">
+        ПАНЕЛЬ АДМІНІСТРАТОРА
+    </h1>
+
+    <div style="display: flex; gap: 30px; align-items: flex-start; justify-content: space-between;">
+        
+        <div style="flex: 1; border: 3px solid #000; padding: 30px; background-color: #000; color: #fff;">
+            <h2 style="font-size: 1.8rem; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; color: #fff;">Управління проєктом</h2>
+            <p style="margin-bottom: 25px; font-size: 1rem;">
+                Тут ти маєш повний контроль над рецептами, користувачами та контентом сайту.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <a href="/admin/" style="display: block; text-align: center; background: #fff; color: #000; padding: 15px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; text-decoration: none; border: 3px solid #fff; transition: 0.2s;">
+                    ⚙️ Відкрити базу даних (Django Admin)
+                </a>
+            </div>
+        </div>
+
+        <div style="flex: 1; border: 3px solid #000; padding: 30px;">
+            <h2 style="font-size: 1.8rem; font-weight: 900; text-transform: uppercase; margin-bottom: 25px;">Фото адміна</h2>
+            
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div style="margin-bottom: 20px;">
+                    <label style="font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 5px;">Змінити аватарку:</label>
+                    {{ form.avatar }}
+                </div>
+                
+                <div style="display: none;">
+                    {{ form.height }}
+                    {{ form.weight }}
+                    {{ form.sport_type }}
+                    {{ form.daily_calories }}
+                </div>
+                
+                <button type="submit" style="width: 100%; background: #000; color: #fff; padding: 15px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; border: none; cursor: pointer;">
+                    Оновити фото
+                </button>
+            </form>
+
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #000;">
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; background: transparent; color: #000; border: 3px solid #000; padding: 12px; font-size: 1rem; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Вийти з акаунту
+                    </button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

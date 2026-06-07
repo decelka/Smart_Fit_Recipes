@@ -1,0 +1,71 @@
+{% extends 'recipes/base.html' %}
+{% block content %}
+<div style="display: flex; gap: 40px; margin-top: 2rem; align-items: flex-start;">
+    
+    <div style="width: 250px; flex-shrink: 0; border: 3px solid #000; padding: 20px;">
+        <h3 style="font-size: 1.2rem; font-weight: 900; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">Мій кабінет</h3>
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 15px;">
+            <li><a href="{% url 'profile' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">1. Особиста інформація</a></li>
+            <li><a href="{% url 'profile_favorites' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">2. Улюблені рецепти та пости</a></li>
+            <li><a href="{% url 'create_recipe' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">3. Створити свій рецепт</a></li>
+            <li><a href="{% url 'profile_my_recipes' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">4. Мої рецепти</a></li>
+            <li style="margin-top: 30px;">
+                <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; text-align: left; background: transparent; color: red; border: 2px solid red; padding: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Вийти з акаунту
+                    </button>
+                </form>
+            </li>
+            <li style="margin-top: 10px;">
+                <form action="{% url 'delete_profile' %}" method="post" onsubmit="return confirm('Точно видаляємо? Всі твої налаштування та рецепти зникнуть назавжди!');" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; text-align: left; background: red; color: white; border: 2px solid #000; padding: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Видалити профіль
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+
+    <div style="flex-grow: 1; border: 3px solid #000; padding: 40px;">
+        <h2 style="font-size: 2rem; font-weight: 900; text-transform: uppercase; margin-bottom: 30px;">Особиста інформація</h2>
+
+        <div style="display: flex; gap: 30px; align-items: flex-start; margin-bottom: 40px;">
+            <div>
+                {% if user.profile and user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" alt="Profile" style="width: 150px; height: 150px; border-radius: 50%; border: 3px solid #000; object-fit: cover;">
+                {% else %}
+                    <div style="width: 150px; height: 150px; border-radius: 50%; border: 3px solid #000; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 4rem; text-transform: uppercase;">
+                        {{ user.username|slice:":1" }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div style="flex-grow: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="border-bottom: 2px solid #ccc; padding-bottom: 10px;">
+                    <strong style="display: block; text-transform: uppercase; color: gray; font-size: 0.9rem;">Ріст (см):</strong>
+                    <span style="font-size: 1.2rem; font-weight: bold;">{% if profile.height %}{{ profile.height }}{% else %}—{% endif %}</span>
+                </div>
+                <div style="border-bottom: 2px solid #ccc; padding-bottom: 10px;">
+                    <strong style="display: block; text-transform: uppercase; color: gray; font-size: 0.9rem;">Вага (кг):</strong>
+                    <span style="font-size: 1.2rem; font-weight: bold;">{% if profile.weight %}{{ profile.weight }}{% else %}—{% endif %}</span>
+                </div>
+                <div style="border-bottom: 2px solid #ccc; padding-bottom: 10px;">
+                    <strong style="display: block; text-transform: uppercase; color: gray; font-size: 0.9rem;">Вид спорту:</strong>
+                    <span style="font-size: 1.2rem; font-weight: bold;">{% if profile.sport_type %}{{ profile.sport_type }}{% else %}—{% endif %}</span>
+                </div>
+                <div style="border-bottom: 2px solid #ccc; padding-bottom: 10px;">
+                    <strong style="display: block; text-transform: uppercase; color: gray; font-size: 0.9rem;">Цільовий калораж:</strong>
+                    <span style="font-size: 1.2rem; font-weight: bold;">{% if profile.daily_calories %}{{ profile.daily_calories }}{% else %}—{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #f9f9f9; border: 2px dashed #000; padding: 20px; text-align: center;">
+            <p style="margin-bottom: 15px; font-weight: bold; font-size: 1.1rem;">Дані змінились або ще не заповнені?</p>
+            <a href="{% url 'profile_edit' %}" style="display: inline-block; background: #000; color: #fff; padding: 12px 25px; font-weight: bold; text-transform: uppercase; text-decoration: none; transition: 0.2s;">Редагувати анкету</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

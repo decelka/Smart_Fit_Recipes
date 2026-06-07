@@ -1,0 +1,138 @@
+{% extends 'recipes/base.html' %}
+
+{% block title %}{{ recipe.title }} - Smart Fit Recipes{% endblock %}
+
+{% block content %}
+<article style="border: 4px solid var(--black); margin-bottom: 3rem; background: var(--white);">
+    
+    {% if recipe.image %}
+        <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" style="width: 100%; height: 50vh; object-fit: cover; border-bottom: 4px solid var(--black); display: block;">
+    {% else %}
+        <div style="width: 100%; height: 300px; background: var(--gray); border-bottom: 4px solid var(--black); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold;">ФОТО НЕ ЗАВАНТАЖЕНО</div>
+    {% endif %}
+
+    <div style="padding: 3rem;">
+        <div style="margin-bottom: 2rem;">
+            <span style="display: inline-block; background: var(--black); color: var(--white); padding: 0.5rem 1rem; font-size: 1rem; text-transform: uppercase; font-weight: bold; margin-bottom: 1rem;">{{ recipe.get_category_display }}</span>
+            <h1 style="font-size: 4rem; text-transform: uppercase; line-height: 1; letter-spacing: -2px; margin-bottom: 1rem;">{{ recipe.title }}</h1>
+            <p style="font-size: 1.2rem; font-weight: bold; text-transform: uppercase; border-top: 2px solid var(--black); border-bottom: 2px solid var(--black); padding: 1rem 0;">⏱ Час приготування: {{ recipe.prep_time }} хв | 👤 Автор: {{ recipe.author.username }}</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 4rem;">
+            
+            <div>
+                <h3 style="font-size: 2rem; text-transform: uppercase; border-bottom: 3px solid var(--black); margin-bottom: 1rem; padding-bottom: 0.5rem;">Інгредієнти</h3>
+                
+                {% if recipe.ingredients.all %}
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem;">
+                    <thead>
+                        <tr style="border-bottom: 3px solid var(--black); text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px;">
+                            <th style="text-align: left; padding: 0.6rem 0.4rem;">Продукт</th>
+                            <th style="text-align: right; padding: 0.6rem 0.4rem;">Вага</th>
+                            <th style="text-align: right; padding: 0.6rem 0.4rem;">Ккал</th>
+                            <th style="text-align: right; padding: 0.6rem 0.4rem;">Б</th>
+                            <th style="text-align: right; padding: 0.6rem 0.4rem;">Ж</th>
+                            <th style="text-align: right; padding: 0.6rem 0.4rem;">В</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in recipe.ingredients.all %}
+                        <tr style="border-bottom: 1px solid var(--gray);">
+                            <td style="padding: 0.7rem 0.4rem; font-weight: 600;">{{ item.name }}</td>
+                            <td style="text-align: right; padding: 0.7rem 0.4rem; white-space: nowrap;">{{ item.weight }}г</td>
+                            <td style="text-align: right; padding: 0.7rem 0.4rem;">{{ item.calories }}</td>
+                            <td style="text-align: right; padding: 0.7rem 0.4rem;">{{ item.protein }}</td>
+                            <td style="text-align: right; padding: 0.7rem 0.4rem;">{{ item.fat }}</td>
+                            <td style="text-align: right; padding: 0.7rem 0.4rem;">{{ item.carbs }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- Підсумки КБЖВ -->
+                <div style="margin-top: 1.2rem; padding: 1rem; background: var(--black); color: var(--white); display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; text-align: center; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;">
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: 900; margin-bottom: 0.2rem;" id="total-cal">—</div>
+                        <div>Ккал</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: 900; margin-bottom: 0.2rem;" id="total-protein">—</div>
+                        <div>Білки</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: 900; margin-bottom: 0.2rem;" id="total-fat">—</div>
+                        <div>Жири</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.4rem; font-weight: 900; margin-bottom: 0.2rem;" id="total-carbs">—</div>
+                        <div>Вуглеводи</div>
+                    </div>
+                </div>
+
+                <script>
+                    // Підрахунок підсумків КБЖВ з таблиці інгредієнтів
+                    (function() {
+                        const rows = document.querySelectorAll('table tbody tr');
+                        let cal = 0, prot = 0, fat = 0, carbs = 0;
+                        rows.forEach(row => {
+                            const cells = row.querySelectorAll('td');
+                            cal += parseFloat(cells[2].textContent) || 0;
+                            prot += parseFloat(cells[3].textContent) || 0;
+                            fat += parseFloat(cells[4].textContent) || 0;
+                            carbs += parseFloat(cells[5].textContent) || 0;
+                        });
+                        document.getElementById('total-cal').textContent = Math.round(cal);
+                        document.getElementById('total-protein').textContent = Math.round(prot * 10) / 10 + 'г';
+                        document.getElementById('total-fat').textContent = Math.round(fat * 10) / 10 + 'г';
+                        document.getElementById('total-carbs').textContent = Math.round(carbs * 10) / 10 + 'г';
+                    })();
+                </script>
+
+                {% else %}
+                    <p style="padding: 1rem 0; color: #888;">Інгредієнти не вказані.</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <h3 style="font-size: 2rem; text-transform: uppercase; border-bottom: 3px solid var(--black); margin-bottom: 1rem; padding-bottom: 0.5rem;">Як готувати</h3>
+                <div style="font-size: 1.2rem; white-space: pre-line; line-height: 1.8;">
+                    {% if recipe.instructions %}
+                        {{ recipe.instructions }}
+                    {% else %}
+                        <p>Інструкція ще не додана.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            </div>
+
+            {% if user.is_authenticated %}
+            <button onclick="toggleFavorite({{ recipe.id }}, this)" style="background: none; border: none; cursor: pointer; font-size: 2.5rem; color: #000; padding: 0; outline: none; transition: transform 0.2s; margin-top: 1.5rem;">{% if request.user in recipe.favorites.all %}♥{% else %}♡{% endif %}</button>
+            {% endif %}
+
+        <script>
+        function toggleFavorite(recipeId, btnElement) {
+            // Ефект натискання
+            btnElement.style.transform = "scale(0.8)";
+            setTimeout(() => btnElement.style.transform = "scale(1)", 150);
+
+            fetch(`/recipe/${recipeId}/favorite/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_favorited) {
+                    btnElement.innerHTML = '♥'; // Зафарбовуємо
+                } else {
+                    btnElement.innerHTML = '♡'; // Робимо порожнім
+                }
+            });
+        }
+        </script>
+    </div>
+</article>
+{% endblock %}

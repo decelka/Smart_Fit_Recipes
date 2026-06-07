@@ -1,0 +1,341 @@
+{% extends 'recipes/base.html' %}
+
+{% block title %}Блог - Smart Fit Recipes{% endblock %}
+
+{% block content %}
+<style>
+    .blog-header {
+        text-transform: uppercase;
+        font-size: 3rem;
+        border-bottom: 3px solid var(--black);
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+        line-height: 1;
+    }
+    .blog-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+    }
+    .blog-card {
+        border: 3px solid var(--black);
+        display: flex;
+        flex-direction: row;
+        transition: transform 0.2s, box-shadow 0.2s;
+        overflow: hidden;
+    }
+    .blog-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 8px 8px 0px var(--black);
+    }
+    .blog-card-image {
+        width: 380px;
+        min-height: 280px;
+        flex-shrink: 0;
+        object-fit: cover;
+        border-right: 3px solid var(--black);
+    }
+    .blog-card-image-placeholder {
+        width: 380px;
+        min-height: 280px;
+        flex-shrink: 0;
+        border-right: 3px solid var(--black);
+        background: var(--gray, #e5e5e5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+    }
+    .blog-card-body {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        flex: 1;
+    }
+    .blog-card-date {
+        font-size: 0.85rem;
+        font-weight: bold;
+        margin-bottom: 0.8rem;
+        border-bottom: 1px solid var(--black);
+        display: inline-block;
+        padding-bottom: 0.2rem;
+        align-self: flex-start;
+    }
+    .blog-card-title {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        text-transform: uppercase;
+        line-height: 1.1;
+        letter-spacing: -0.5px;
+    }
+    .blog-card-excerpt {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #333;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .blog-card-readmore {
+        margin-top: 1.2rem;
+        display: inline-block;
+        background: var(--black);
+        color: var(--white);
+        padding: 0.5rem 1.5rem;
+        text-decoration: none;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 0.85rem;
+        border: 2px solid var(--black);
+        align-self: flex-start;
+        transition: background 0.2s, color 0.2s;
+        cursor: pointer;
+    }
+    .blog-card-readmore:hover {
+        background: var(--white);
+        color: var(--black);
+    }
+
+    /* Модальне вікно для повної статті */
+    .blog-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 3rem 1rem;
+        overflow-y: auto;
+    }
+    .blog-modal-overlay.active {
+        display: flex;
+    }
+    .blog-modal {
+        background: var(--white);
+        border: 3px solid var(--black);
+        max-width: 800px;
+        width: 100%;
+        padding: 2.5rem;
+        position: relative;
+        box-shadow: 12px 12px 0px var(--black);
+        animation: modalSlideIn 0.3s ease;
+    }
+    @keyframes modalSlideIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .blog-modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1.2rem;
+        font-size: 2rem;
+        font-weight: 900;
+        cursor: pointer;
+        line-height: 1;
+        background: none;
+        border: none;
+        transition: transform 0.2s;
+    }
+    .blog-modal-close:hover {
+        transform: scale(1.2);
+    }
+    .blog-modal-image {
+        width: 100%;
+        max-height: 400px;
+        object-fit: cover;
+        border: 2px solid var(--black);
+        margin-bottom: 1.5rem;
+    }
+    .blog-modal-title {
+        font-size: 2.2rem;
+        text-transform: uppercase;
+        margin-bottom: 0.8rem;
+        line-height: 1.1;
+    }
+    .blog-modal-date {
+        font-size: 0.85rem;
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--black);
+        display: inline-block;
+        padding-bottom: 0.2rem;
+    }
+    .blog-modal-content {
+        white-space: pre-line;
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+
+    /* Адаптивність */
+    @media (max-width: 768px) {
+        .blog-card {
+            flex-direction: column;
+        }
+        .blog-card-image,
+        .blog-card-image-placeholder {
+            width: 100%;
+            min-height: 200px;
+            border-right: none;
+            border-bottom: 3px solid var(--black);
+        }
+        .blog-card-title {
+            font-size: 1.4rem;
+        }
+        .blog-header {
+            font-size: 2rem;
+        }
+        .blog-modal {
+            padding: 1.5rem;
+        }
+        .blog-modal-title {
+            font-size: 1.6rem;
+        }
+    }
+
+    .blog-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        border: 3px dashed var(--black);
+        font-size: 1.2rem;
+    }
+
+    /* Кнопка додати в улюблене */
+    .blog-fav-btn {
+        background: none;
+        border: 2px solid var(--black);
+        cursor: pointer;
+        font-size: 1.4rem;
+        padding: 0.4rem 0.8rem;
+        line-height: 1;
+        transition: transform 0.2s, background 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    .blog-fav-btn:hover {
+        transform: scale(1.1);
+        background: var(--gray);
+    }
+    .blog-fav-btn.active {
+        background: var(--black);
+        color: var(--white);
+    }
+</style>
+
+<h2 class="blog-header">Блог & Статті</h2>
+
+<div class="blog-list">
+    {% for post in posts %}
+    <article class="blog-card" id="blog-card-{{ post.id }}">
+        {% if post.image %}
+            <img src="{{ post.image.url }}" alt="{{ post.title }}" class="blog-card-image">
+        {% else %}
+            <div class="blog-card-image-placeholder">Немає фото</div>
+        {% endif %}
+        <div class="blog-card-body">
+            <span class="blog-card-date">{{ post.created_at|date:"d.m.Y" }}</span>
+            <h3 class="blog-card-title">{{ post.title }}</h3>
+            <div class="blog-card-excerpt">{{ post.content }}</div>
+            <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1.2rem;">
+                <span class="blog-card-readmore" onclick="openPost({{ post.id }})" style="margin-top: 0;">Читати далі →</span>
+                {% if user.is_authenticated %}
+                <button class="blog-fav-btn {% if user in post.favorites.all %}active{% endif %}" id="fav-btn-{{ post.id }}" onclick="toggleFavoritePost({{ post.id }}, this)" title="Додати в улюблене">
+                    <span class="fav-icon">{% if user in post.favorites.all %}♥{% else %}♡{% endif %}</span>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </article>
+
+    <!-- Модальне вікно для цієї статті -->
+    <div class="blog-modal-overlay" id="modal-{{ post.id }}">
+        <div class="blog-modal">
+            <button class="blog-modal-close" onclick="closePost({{ post.id }})">&times;</button>
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="blog-modal-image">
+            {% endif %}
+            <span class="blog-modal-date">{{ post.created_at|date:"d.m.Y" }}</span>
+            <h2 class="blog-modal-title">{{ post.title }}</h2>
+            {% if user.is_authenticated %}
+            <div style="margin-bottom: 1rem;">
+                <button class="blog-fav-btn {% if user in post.favorites.all %}active{% endif %}" id="fav-btn-modal-{{ post.id }}" onclick="toggleFavoritePost({{ post.id }}, this)" title="Додати в улюблене">
+                    <span class="fav-icon">{% if user in post.favorites.all %}♥{% else %}♡{% endif %}</span>
+                    <span style="font-size: 0.85rem; font-weight: bold; text-transform: uppercase;">В улюблене</span>
+                </button>
+            </div>
+            {% endif %}
+            <div class="blog-modal-content">{{ post.content }}</div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="blog-empty">
+        <p>📝 Статей ще немає. Напишіть першу статтю в Admin панелі.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    function openPost(id) {
+        document.getElementById('modal-' + id).classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closePost(id) {
+        document.getElementById('modal-' + id).classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    // Закриття по кліку на оверлей
+    document.querySelectorAll('.blog-modal-overlay').forEach(function(overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    });
+    // Закриття по Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.blog-modal-overlay.active').forEach(function(modal) {
+                modal.classList.remove('active');
+            });
+            document.body.style.overflow = '';
+        }
+    });
+
+    // Додавання/видалення статті з улюблених
+    function toggleFavoritePost(postId, btnElement) {
+        btnElement.style.transform = 'scale(0.85)';
+        setTimeout(() => btnElement.style.transform = '', 150);
+
+        fetch(`/post/${postId}/favorite/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Оновлюємо обидві кнопки (на картці і в модалі)
+            const cardBtn = document.getElementById('fav-btn-' + postId);
+            const modalBtn = document.getElementById('fav-btn-modal-' + postId);
+            [cardBtn, modalBtn].forEach(btn => {
+                if (!btn) return;
+                const icon = btn.querySelector('.fav-icon');
+                if (data.is_favorited) {
+                    btn.classList.add('active');
+                    if (icon) icon.textContent = '♥';
+                } else {
+                    btn.classList.remove('active');
+                    if (icon) icon.textContent = '♡';
+                }
+            });
+        });
+    }
+</script>
+{% endblock %}

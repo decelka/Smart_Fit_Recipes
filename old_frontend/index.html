@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Спортивна книга рецептів</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Smart Fit Recipes</h1>
+        <p>Аналізатор нутрієнтів та планувальник раціону</p>
+    </header>
+
+    <main class="container">
+        <section class="controls">
+            <select id="category-filter">
+                <option value="all">Усі категорії</option>
+                <option value="Набір маси">Набір маси</option>
+                <option value="Схуднення">Схуднення</option>
+                <option value="Підтримання форми">Підтримання форми</option>
+            </select>
+            <button id="export-btn" class="btn">Завантажити список покупок (.txt)</button>
+        </section>
+
+        <section id="recipe-container" class="recipe-grid">
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

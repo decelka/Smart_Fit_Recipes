@@ -1,0 +1,45 @@
+{% extends 'recipes/base.html' %}
+{% block content %}
+<div style="display: flex; gap: 40px; margin-top: 2rem; align-items: flex-start;">
+    
+    <div style="width: 250px; flex-shrink: 0; border: 3px solid #000; padding: 20px;">
+        <h3 style="font-size: 1.2rem; font-weight: 900; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">Мій кабінет</h3>
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 15px;">
+            <li><a href="{% url 'profile' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">1. Особиста інформація</a></li>
+            <li><a href="{% url 'profile_favorites' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">2. Улюблені рецепти та пости</a></li>
+            <li><a href="{% url 'create_recipe' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">3. Створити свій рецепт</a></li>
+            <li><a href="{% url 'profile_my_recipes' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">4. Мої рецепти</a></li>
+            <li style="margin-top: 30px;">
+                <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; text-align: left; background: transparent; color: red; border: 2px solid red; padding: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Вийти з акаунту
+                    </button>
+                </form>
+            </li>
+            <li style="margin-top: 10px;">
+                <form action="{% url 'delete_profile' %}" method="post" onsubmit="return confirm('Точно видаляємо? Всі твої налаштування та рецепти зникнуть назавжди!');" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; text-align: left; background: red; color: white; border: 2px solid #000; padding: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Видалити профіль
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+
+    <div style="flex-grow: 1; border: 3px solid #000; padding: 40px;">
+        <h2 style="font-size: 2rem; font-weight: 900; text-transform: uppercase; margin-bottom: 30px;">Внесення даних</h2>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            
+            <div style="display: flex; gap: 15px; margin-top: 30px;">
+                <button type="submit" style="background: #000; color: #fff; padding: 15px 30px; font-weight: bold; text-transform: uppercase; border: none; cursor: pointer; flex-grow: 1;">Зберегти зміни</button>
+                <a href="{% url 'profile' %}" style="background: #fff; color: #000; padding: 15px 30px; font-weight: bold; text-transform: uppercase; border: 3px solid #000; text-decoration: none; text-align: center;">Скасувати</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'recipes/base.html' %}
+{% block content %}
+<div style="display: flex; gap: 40px; margin-top: 2rem; align-items: flex-start;">
+    
+    <div style="width: 250px; flex-shrink: 0; border: 3px solid #000; padding: 20px;">
+        <h3 style="font-size: 1.2rem; font-weight: 900; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">Мій кабінет</h3>
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 15px;">
+            <li><a href="{% url 'profile' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">1. Особиста інформація</a></li>
+            <li><a href="{% url 'profile_favorites' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">2. Улюблені рецепти та пости</a></li>
+            <li><a href="{% url 'create_recipe' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">3. Створити свій рецепт</a></li>
+            <li><a href="{% url 'profile_my_recipes' %}" style="text-decoration: none; color: #fff; background: #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">4. Мої рецепти</a></li>
+            <li style="margin-top: 30px;">
+                <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; text-align: left; background: transparent; color: red; border: 2px solid red; padding: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Вийти з акаунту
+                    </button>
+                </form>
+            </li>
+            <li style="margin-top: 10px;">
+                <form action="{% url 'delete_profile' %}" method="post" onsubmit="return confirm('Точно видаляємо? Всі твої налаштування та рецепти зникнуть назавжди!');" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; text-align: left; background: red; color: white; border: 2px solid #000; padding: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Видалити профіль
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+
+    <div style="flex-grow: 1; border: 3px solid #000; padding: 40px;">
+        <h2 style="font-size: 2rem; font-weight: 900; text-transform: uppercase; margin-bottom: 20px;">Авторські рецепти</h2>
+        <p style="margin-bottom: 30px;">Тут відображаються страви, які ти самостійно додала на сайт, та їхня статистика.</p>
+
+        <div style="border: 3px solid #000; padding: 20px; background: #f9f9f9;">
+            <h4 style="font-weight: 900; text-transform: uppercase; margin-bottom: 15px;">Опубліковано страв ({{ my_recipes.count }})</h4>
+            
+            {% if my_recipes %}
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    {% for recipe in my_recipes %}
+                        <div style="display: flex; align-items: center; gap: 15px; border: 2px solid #000; padding: 10px; background: #fff;">
+                            
+                            {% if recipe.image %}
+                                <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" style="width: 60px; height: 60px; object-fit: cover; border: 2px solid #000; flex-shrink: 0;">
+                            {% else %}
+                                <div style="width: 60px; height: 60px; border: 2px solid #000; background: #e6e6e6; flex-shrink: 0;"></div>
+                            {% endif %}
+                            
+                            <div style="flex-grow: 1;">
+                                <h5 style="margin: 0; font-weight: 900; text-transform: uppercase; font-size: 1.1rem;">{{ recipe.title }}</h5>
+                                <div style="display: flex; gap: 15px; margin-top: 5px; font-size: 0.8rem; font-weight: bold; text-transform: uppercase;">
+                                    <span style="color: gray;">
+                                        {% if recipe.category == 'Diet Recipes' %}На сушку
+                                        {% elif recipe.category == 'Gaining Mass' %}На масу
+                                        {% else %}Відновлення{% endif %}
+                                    </span>
+                                    <span style="color: #ff0000;">♥ {{ recipe.favorites.count }}</span>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 10px;">
+                                <a href="{% url 'recipe_detail' recipe.id %}" style="background: #fff; color: #000; text-decoration: none; padding: 8px 15px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; border: 2px solid #000;">
+                                    Дивитись
+                                </a>
+                                
+                                <form action="{% url 'delete_recipe' recipe.id %}" method="POST" onsubmit="return confirm('Точно видалити цей рецепт з сайту?');" style="margin: 0;">
+                                    {% csrf_token %}
+                                    <button type="submit" style="background: red; color: #fff; padding: 8px 15px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; border: 2px solid #000; cursor: pointer;">
+                                        Видалити
+                                    </button>
+                                </form>
+                            </div>
+                            
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: gray; font-size: 0.9rem; margin: 0;">Ти ще не створила жодного власного рецепта.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

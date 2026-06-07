@@ -1,0 +1,44 @@
+{% extends 'recipes/base.html' %}
+
+{% block title %}Головна - Smart Fit Recipes{% endblock %}
+
+{% block content %}
+<style>
+    .hero { text-align: center; padding: 4rem 0; border-bottom: 3px solid var(--black); margin-bottom: 3rem; }
+    .hero h1 { font-size: 4rem; text-transform: uppercase; letter-spacing: -2px; margin-bottom: 1rem; line-height: 1; }
+    .hero p { font-size: 1.2rem; max-width: 600px; margin: 0 auto; font-weight: 500; }
+    
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+    .card { border: 3px solid var(--black); padding: 1.5rem; display: flex; flex-direction: column; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-5px); box-shadow: 8px 8px 0px var(--black); }
+    .card h3 { text-transform: uppercase; font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .tag { display: inline-block; background: var(--black); color: var(--white); padding: 0.2rem 0.6rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold; margin-bottom: 1rem; align-self: flex-start; }
+    .recipe-img { width: 100%; height: 200px; object-fit: cover; border: 2px solid var(--black); margin-bottom: 1rem; background: var(--gray); }
+</style>
+
+<section class="hero">
+    <h1>Eat Smart.<br>Train Hard.</h1>
+    <p>Практичний посібник для збалансованого харчування та досягнення спортивних цілей.</p>
+</section>
+
+<h2 style="text-transform: uppercase; margin-bottom: 1.5rem; font-size: 2rem;">Останні рецепти</h2>
+
+<div class="grid">
+    {% for recipe in recipes %}
+    <div class="card">
+        {% if recipe.image %}
+            <img src="{{ recipe.image.url }}" alt="{{ recipe.title }}" class="recipe-img">
+        {% else %}
+            <div class="recipe-img" style="display:flex; align-items:center; justify-content:center; font-weight:bold;">НЕМАЄ ФОТО</div>
+        {% endif %}
+        <span class="tag">{{ recipe.get_category_display }}</span>
+        <a href="{% url 'recipe_detail' recipe.id %}" style="color: inherit; text-decoration: none;">
+            <h3 style="text-transform: uppercase; font-size: 1.5rem; margin-bottom: 0.5rem;">{{ recipe.title }}</h3>
+        </a>
+        <p><strong>Час приготування:</strong> {{ recipe.prep_time }} хв</p>
+    </div>
+    {% empty %}
+    <p>Рецептів поки немає. Зайдіть в Адмінку та додайте першу страву!</p>
+    {% endfor %}
+</div>
+{% endblock %}

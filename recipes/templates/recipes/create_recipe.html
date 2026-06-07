@@ -1,0 +1,340 @@
+{% extends 'recipes/base.html' %}
+{% block content %}
+<style>
+    .ing-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+        gap: 8px;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid #e5e5e5;
+    }
+    .ing-row input {
+        width: 100%;
+        border: 2px solid #000;
+        padding: 8px;
+        box-sizing: border-box;
+        font-size: 0.9rem;
+    }
+    .ing-header {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto;
+        gap: 8px;
+        font-weight: 900;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding-bottom: 8px;
+        border-bottom: 3px solid #000;
+    }
+    .ing-remove {
+        background: none;
+        border: 2px solid red;
+        color: red;
+        font-weight: 900;
+        cursor: pointer;
+        padding: 6px 10px;
+        font-size: 1rem;
+        transition: 0.2s;
+    }
+    .ing-remove:hover {
+        background: red;
+        color: #fff;
+    }
+    .ing-add {
+        background: #fff;
+        border: 2px dashed #000;
+        padding: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        cursor: pointer;
+        width: 100%;
+        font-size: 0.9rem;
+        margin-top: 10px;
+        transition: 0.2s;
+    }
+    .ing-add:hover {
+        background: #000;
+        color: #fff;
+        border-style: solid;
+    }
+</style>
+
+<div style="display: flex; gap: 40px; margin-top: 2rem; align-items: flex-start;">
+    
+    <div style="width: 250px; flex-shrink: 0; border: 3px solid #000; padding: 20px;">
+        <h3 style="font-size: 1.2rem; font-weight: 900; text-transform: uppercase; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">Мій кабінет</h3>
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 15px;">
+            <li><a href="{% url 'profile' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">1. Особиста інформація</a></li>
+            <li><a href="{% url 'profile_favorites' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">2. Улюблені рецепти та пости</a></li>
+            <li><a href="{% url 'create_recipe' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">3. Створити свій рецепт</a></li>
+            <li><a href="{% url 'profile_my_recipes' %}" style="text-decoration: none; color: #000; border: 2px solid #000; padding: 10px; display: block; font-weight: bold; text-transform: uppercase;">4. Мої рецепти</a></li>
+            <li style="margin-top: 30px;">
+                <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; text-align: left; background: transparent; color: red; border: 2px solid red; padding: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Вийти з акаунту
+                    </button>
+                </form>
+            </li>
+            <li style="margin-top: 10px;">
+                <form action="{% url 'delete_profile' %}" method="post" onsubmit="return confirm('Точно видаляємо? Всі твої налаштування та рецепти зникнуть назавжди!');" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; text-align: left; background: red; color: white; border: 2px solid #000; padding: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Видалити профіль
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+
+    <div style="flex-grow: 1; border: 3px solid #000; padding: 40px;">
+        <h2 id="page-title" style="font-size: 2rem; font-weight: 900; text-transform: uppercase; margin-bottom: 30px;">Конструктор рецептів</h2>
+
+        <form id="recipeForm" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div id="form-step" style="display: flex; flex-direction: column; gap: 20px;">
+                <div>
+                    <label style="font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 5px;">Назва страви:</label>
+                    <input type="text" name="title" id="input-title" required style="width: 100%; border: 2px solid #000; padding: 10px; box-sizing: border-box;">
+                </div>
+
+                <div style="display: flex; gap: 20px;">
+                    <div style="flex: 1;">
+                        <label style="font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 5px;">Категорія:</label>
+                        <select name="category" id="input-category" style="width: 100%; border: 2px solid #000; padding: 10px; background: #fff;">
+                            <option value="Diet Recipes">На сушку</option>
+                            <option value="Gaining Mass">На масу</option>
+                            <option value="Recovery">Відновлення</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 5px;">Час (хв):</label>
+                        <input type="number" name="prep_time" id="input-time" placeholder="Наприклад: 30" style="width: 100%; border: 2px solid #000; padding: 10px; box-sizing: border-box;">
+                    </div>
+                </div>
+
+                <!-- Блок інгредієнтів з КБЖВ -->
+                <div>
+                    <label style="font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 10px;">Інгредієнти:</label>
+                    <div class="ing-header">
+                        <span>Продукт</span>
+                        <span>Вага (г)</span>
+                        <span>Ккал</span>
+                        <span>Білки</span>
+                        <span>Жири</span>
+                        <span>Вуглеводи</span>
+                        <span></span>
+                    </div>
+                    <div id="ingredients-container">
+                        <!-- Рядки інгредієнтів додаються через JS -->
+                    </div>
+                    <button type="button" class="ing-add" onclick="addIngredientRow()">+ Додати інгредієнт</button>
+                </div>
+
+                <div>
+                    <label style="font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 5px;">Спосіб приготування:</label>
+                    <textarea name="instructions" id="input-instructions" rows="6" required style="width: 100%; border: 2px solid #000; padding: 10px; box-sizing: border-box; font-family: sans-serif;"></textarea>
+                </div>
+
+                <div>
+                    <label style="font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 5px;">Фото страви:</label>
+                    <input type="file" name="image" id="input-image" style="width: 100%; border: 2px solid #000; padding: 10px; box-sizing: border-box; background: #fff;">
+                </div>
+
+                <button type="button" onclick="showPreview()" style="background: #000; color: #fff; padding: 15px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; border: none; cursor: pointer; margin-top: 10px;">
+                    Попередній перегляд
+                </button>
+            </div>
+
+            <div id="preview-step" style="display: none; flex-direction: column; gap: 20px;">
+                <div style="border: 2px dashed #000; padding: 20px; background: #f9f9f9;">
+                    <h3 id="prev-title" style="font-size: 2rem; font-weight: 900; text-transform: uppercase; margin-top: 0; margin-bottom: 10px;"></h3>
+                    <p id="prev-meta" style="font-weight: bold; color: gray; text-transform: uppercase; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px;"></p>
+                    
+                    <img id="prev-img" style="width: 100%; max-height: 400px; object-fit: cover; border: 3px solid #000; display: none; margin-bottom: 20px;">
+
+                    <!-- Попередній перегляд інгредієнтів -->
+                    <div id="prev-ingredients" style="margin-bottom: 20px;"></div>
+                    
+                    <p id="prev-text" style="white-space: pre-wrap; font-family: sans-serif; font-size: 1.1rem; line-height: 1.6;"></p>
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <button type="button" onclick="hidePreview()" style="flex: 1; background: #fff; color: #000; border: 3px solid #000; padding: 15px; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Назад до редагування
+                    </button>
+                    <button type="submit" style="flex: 1; background: #000; color: #fff; border: none; padding: 15px; font-weight: bold; text-transform: uppercase; cursor: pointer;">
+                        Опублікувати
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    let ingredientIndex = 0;
+
+    function addIngredientRow() {
+        const container = document.getElementById('ingredients-container');
+        const idx = ingredientIndex++;
+        const row = document.createElement('div');
+        row.className = 'ing-row';
+        row.id = 'ing-row-' + idx;
+        row.innerHTML = `
+            <input type="text" name="ing_name_${idx}" placeholder="Назва продукту">
+            <input type="number" name="ing_weight_${idx}" placeholder="г" step="any" min="0">
+            <input type="number" name="ing_calories_${idx}" placeholder="ккал" step="any" min="0">
+            <input type="number" name="ing_protein_${idx}" placeholder="г" step="any" min="0">
+            <input type="number" name="ing_fat_${idx}" placeholder="г" step="any" min="0">
+            <input type="number" name="ing_carbs_${idx}" placeholder="г" step="any" min="0">
+            <button type="button" class="ing-remove" onclick="removeIngredientRow('ing-row-${idx}')" title="Видалити">✕</button>
+        `;
+        container.appendChild(row);
+    }
+
+    function removeIngredientRow(rowId) {
+        const row = document.getElementById(rowId);
+        if (row) {
+            row.style.transition = 'opacity 0.2s, transform 0.2s';
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(20px)';
+            setTimeout(() => row.remove(), 200);
+        }
+    }
+
+    // Додаємо перший порожній рядок при завантаженні сторінки
+    addIngredientRow();
+
+    function getIngredients() {
+        const rows = document.querySelectorAll('#ingredients-container .ing-row');
+        const ingredients = [];
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            const name = inputs[0].value.trim();
+            const weight = parseFloat(inputs[1].value) || 0;
+            const calories = parseFloat(inputs[2].value) || 0;
+            const protein = parseFloat(inputs[3].value) || 0;
+            const fat = parseFloat(inputs[4].value) || 0;
+            const carbs = parseFloat(inputs[5].value) || 0;
+            if (name) {
+                ingredients.push({ name, weight, calories, protein, fat, carbs });
+            }
+        });
+        return ingredients;
+    }
+
+    function showPreview() {
+        const title = document.getElementById('input-title').value;
+        const category = document.getElementById('input-category').options[document.getElementById('input-category').selectedIndex].text;
+        const time = document.getElementById('input-time').value;
+        const instructions = document.getElementById('input-instructions').value;
+        const imageFile = document.getElementById('input-image').files[0];
+
+        if (!title || !instructions) {
+            alert("Заповни назву та спосіб приготування!");
+            return;
+        }
+
+        document.getElementById('prev-title').innerText = title;
+        document.getElementById('prev-meta').innerText = `Категорія: ${category} | Час: ${time ? time + ' хв' : 'Не вказано'}`;
+        document.getElementById('prev-text').innerText = instructions;
+
+        const imgEl = document.getElementById('prev-img');
+        if (imageFile) {
+            imgEl.src = URL.createObjectURL(imageFile);
+            imgEl.style.display = 'block';
+        } else {
+            imgEl.style.display = 'none';
+        }
+
+        // Генеруємо таблицю інгредієнтів для прев'ю
+        const ingredients = getIngredients();
+        const prevIng = document.getElementById('prev-ingredients');
+        if (ingredients.length > 0) {
+            let totalCal = 0, totalP = 0, totalF = 0, totalC = 0;
+            let html = '<h4 style="font-weight:900; text-transform:uppercase; margin-bottom:10px; font-size:1.1rem;">Інгредієнти</h4>';
+            html += '<table style="width:100%; border-collapse:collapse; font-size:0.9rem;">';
+            html += '<thead><tr style="border-bottom:3px solid #000; text-transform:uppercase; font-size:0.75rem;">';
+            html += '<th style="text-align:left; padding:6px 4px;">Продукт</th>';
+            html += '<th style="text-align:right; padding:6px 4px;">Вага</th>';
+            html += '<th style="text-align:right; padding:6px 4px;">Ккал</th>';
+            html += '<th style="text-align:right; padding:6px 4px;">Б</th>';
+            html += '<th style="text-align:right; padding:6px 4px;">Ж</th>';
+            html += '<th style="text-align:right; padding:6px 4px;">В</th></tr></thead><tbody>';
+            ingredients.forEach(ing => {
+                totalCal += ing.calories;
+                totalP += ing.protein;
+                totalF += ing.fat;
+                totalC += ing.carbs;
+                html += `<tr style="border-bottom:1px solid #e5e5e5;">
+                    <td style="padding:6px 4px; font-weight:600;">${ing.name}</td>
+                    <td style="text-align:right; padding:6px 4px;">${ing.weight}г</td>
+                    <td style="text-align:right; padding:6px 4px;">${ing.calories}</td>
+                    <td style="text-align:right; padding:6px 4px;">${ing.protein}</td>
+                    <td style="text-align:right; padding:6px 4px;">${ing.fat}</td>
+                    <td style="text-align:right; padding:6px 4px;">${ing.carbs}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            html += `<div style="margin-top:10px; padding:10px; background:#000; color:#fff; display:grid; grid-template-columns:repeat(4,1fr); text-align:center; text-transform:uppercase; font-size:0.75rem;">
+                <div><div style="font-size:1.2rem; font-weight:900;">${Math.round(totalCal)}</div>Ккал</div>
+                <div><div style="font-size:1.2rem; font-weight:900;">${Math.round(totalP*10)/10}г</div>Білки</div>
+                <div><div style="font-size:1.2rem; font-weight:900;">${Math.round(totalF*10)/10}г</div>Жири</div>
+                <div><div style="font-size:1.2rem; font-weight:900;">${Math.round(totalC*10)/10}г</div>Вуглеводи</div>
+            </div>`;
+            prevIng.innerHTML = html;
+        } else {
+            prevIng.innerHTML = '';
+        }
+
+        // Записуємо інгредієнти в приховані поля перед показом прев'ю
+        updateHiddenIngredients();
+
+        document.getElementById('form-step').style.display = 'none';
+        document.getElementById('preview-step').style.display = 'flex';
+        document.getElementById('page-title').innerText = 'Попередній перегляд';
+    }
+
+    function updateHiddenIngredients() {
+        // Видаляємо старі приховані поля
+        document.querySelectorAll('.hidden-ing').forEach(el => el.remove());
+
+        const ingredients = getIngredients();
+        const form = document.getElementById('recipeForm');
+
+        // Записуємо кількість інгредієнтів
+        const countInput = document.createElement('input');
+        countInput.type = 'hidden';
+        countInput.name = 'ingredient_count';
+        countInput.value = ingredients.length;
+        countInput.className = 'hidden-ing';
+        form.appendChild(countInput);
+
+        // Записуємо кожен інгредієнт окремими hidden полями
+        ingredients.forEach((ing, i) => {
+            ['name', 'weight', 'calories', 'protein', 'fat', 'carbs'].forEach(field => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = `ingredient_${i}_${field}`;
+                input.value = ing[field];
+                input.className = 'hidden-ing';
+                form.appendChild(input);
+            });
+        });
+    }
+
+    // Оновлюємо приховані поля і перед самим сабмітом
+    document.getElementById('recipeForm').addEventListener('submit', function() {
+        updateHiddenIngredients();
+    });
+
+    function hidePreview() {
+        document.getElementById('form-step').style.display = 'flex';
+        document.getElementById('preview-step').style.display = 'none';
+        document.getElementById('page-title').innerText = 'Конструктор рецептів';
+    }
+</script>
+{% endblock %}
